@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+    <!-- Create Pagerduty tables -->
+    <changeSet id="1" author="krisnamourt">
+        <createTable tableName="vets">
+            <column name="id" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="first_name" type="VARCHAR(64)" />
+            <column name="last_name" type="VARCHAR(64)" />      
+        </createTable>
+
+        <createTable tableName="specialties">
+            <column name="id" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="name" type="VARCHAR(126)" />     
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="krisnamourt" dbms="mysql">
+        <addAutoIncrement 
+            columnDataType="int"
+            columnName="id"
+            schemaName="${db.name}"
+            startWith="1"
+            tableName="vets"/>
+        <addAutoIncrement 
+            columnDataType="int"
+            columnName="id"
+            schemaName="${db.name}"
+            startWith="1"
+            tableName="specialties"/>
+    </changeSet>
+        <changeSet id="2" author="krisnamourt" dbms="postgresql">
+        <addAutoIncrement 
+            columnDataType="int"
+            columnName="id"
+            schemaName="public"
+            startWith="1"
+            tableName="vets"/>
+        <addAutoIncrement 
+            columnDataType="int"
+            columnName="id"
+            schemaName="public"
+            startWith="1"
+            tableName="specialties"/>
+    </changeSet>
+
+    <changeSet id="3" author="krisnamourt">
+    <createTable tableName="vet_specialties">
+         <column name="vet_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_vet" references="vets(id)" primaryKey="true" primaryKeyName="pk_vet_specialties"/>
+            </column>
+             <column name="specialty_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_specialtie" references="specialties(id)" primaryKey="true" primaryKeyName="pk_vet_specialties"/>
+            </column>
+        </createTable>
+     </changeSet>
+
+</databaseChangeLog>

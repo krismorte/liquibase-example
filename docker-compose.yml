@@ -2,7 +2,7 @@ version: '3.8'
 services:
 
   db_mysql:
-    image: mysql:latest
+    image: mysql:8.3.0
     container_name: mysql
     ports:
       - "3306:3306"
@@ -17,25 +17,25 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
 
   liquibase_mysql:
-    image: liquibase/liquibase
+    image: liquibase/liquibase:4.26
     container_name: liquibase_mysql
     environment:
       - "INSTALL_MYSQL=true"
     volumes:
       - ./dbschema:/liquibase/changelog
     command: [
-        '--changeLogFile=changelog1.0.xml',
+        'update',
+        '--changeLogFile=changelog/changelog1.0.xml',
         '--url=jdbc:mysql://db_mysql:3306/${MYSQL_DATABASE}?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false',
         '--username=root',
-        '--password=${MYSQL_ROOT_PASSWORD}',
-        'update'
+        '--password=${MYSQL_ROOT_PASSWORD}'
       ]
     depends_on: 
       db_mysql:
         condition: service_healthy
 
   db_pgsql:
-    image: postgres:latest
+    image: postgres:12.18
     container_name: pgsql
     ports:
       - "5432:5432"
@@ -49,48 +49,48 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
   liquibase_pgsql:
-    image: liquibase/liquibase
+    image: liquibase/liquibase:4.26
     container_name: liquibase_pgsql
     volumes:
       - ./dbschema:/liquibase/changelog
     command: [
-        '--changeLogFile=changelog1.0.xml',
+        'update',
+        '--changeLogFile=changelog/changelog1.0.xml',
         '--url=jdbc:postgresql://db_pgsql:5432/${POSTGRES_DB}',
         '--username=postgres',
-        '--password=${POSTGRES_PASSWORD}',
-        'update'
+        '--password=${POSTGRES_PASSWORD}'
       ]
     depends_on: 
       db_pgsql:
         condition: service_healthy
 
   db_mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/azure-sql-edge
     container_name: mssql
+    cap_add: 
+      - SYS_PTRACE
     ports:
       - "1433:1433"
-    healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Pass_word" -Q "SELECT 1" -b -o /dev/null
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
     environment:
       ACCEPT_EULA: Y 
       MSSQL_SA_PASSWORD: ${MSSQL_PASSWORD}
 
   liquibase_mssql:
-    image: liquibase/liquibase
+    image: liquibase/liquibase:4.26
     container_name: liquibase_mssql
     volumes:
       - ./dbschema:/liquibase/changelog
     command: [
-        '--changeLogFile=changelog1.0.xml',
-        '--url=jdbc:sqlserver://db_mssql:1433;databaseName=master',
+        '--changeLogFile=changelog/changelog1.0.xml',
+        '--url=jdbc:sqlserver://db_mssql:1433;databaseName=master;encrypt=true;trustServerCertificate=true',
         '--username=sa',
         '--password=${MSSQL_PASSWORD}',
         'update'
       ]
     depends_on: 
       db_mssql:
-        condition: service_healthy
+        condition: service_started
+      liquibase_mysql:
+        condition: service_started
+      liquibase_pgsql:
+        condition: service_started

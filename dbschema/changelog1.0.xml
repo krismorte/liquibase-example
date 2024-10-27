@@ -6,5 +6,5 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd"> 
     
     <property  name="db.name"  value="TestDB"/>
-    <include file="1.0/changelog-1.0.xml"/>
+    <include file="changelog/1.0/changelog-1.0.xml"/>
 </databaseChangeLog> 

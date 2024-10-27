@@ -5,8 +5,27 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
 
-    <!-- Create Pagerduty tables -->
-    <changeSet id="1" author="krisnamourt">
+
+    <!-- Create Sequences Only Except MySQL 8.0-->
+    <changeSet  id="1" author="krisnamourt">
+        <createSequence  
+            cycle="false"
+            incrementBy="1"
+            maxValue="100000000"
+            minValue="1"
+            sequenceName="vets_id"
+            startValue="1"/>
+        <createSequence  
+            cycle="false"
+            incrementBy="1"
+            maxValue="100000000"
+            minValue="1"
+            sequenceName="specialties_id"
+            startValue="1"/>
+        </changeSet>
+
+    <!-- Create tables -->
+    <changeSet id="2" author="krisnamourt">
         <createTable tableName="vets">
             <column name="id" type="INT">
                 <constraints primaryKey="true"/>
@@ -17,7 +36,7 @@
         </createTable>
 
         <createTable tableName="specialties">
-            <column name="id" type="INT">
+            <column name="id" type="INT" >
                 <constraints primaryKey="true"/>
             </column>
 
@@ -25,7 +44,8 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="2" author="krisnamourt" dbms="mysql">
+    <!-- MySQL 8.0 uses auto increment-->
+    <changeSet id="3.0" author="krisnamourt" dbms="mysql">
         <addAutoIncrement 
             columnDataType="int"
             columnName="id"
@@ -36,30 +56,40 @@
             columnDataType="int"
             columnName="id"
             schemaName="${db.name}"
-            startWith="1"
-            tableName="specialties"/>
-    </changeSet>
-        <changeSet id="2" author="krisnamourt" dbms="postgresql">
-        <addAutoIncrement 
-            columnDataType="int"
-            columnName="id"
-            schemaName="public"
-            startWith="1"
-            tableName="vets"/>
-        <addAutoIncrement 
-            columnDataType="int"
-            columnName="id"
-            schemaName="public"
             startWith="1"
             tableName="specialties"/>
     </changeSet>
 
-    <changeSet id="3" author="krisnamourt">
-    <createTable tableName="vet_specialties">
-         <column name="vet_id" type="INT">
-                <constraints nullable="false" foreignKeyName="fk_vet" references="vets(id)" primaryKey="true" primaryKeyName="pk_vet_specialties"/>
+    <!-- Postgres uses Default to call the sequence-->
+    <changeSet  id="3.1" author="krisnamourt" dbms="postgresql">
+        <addDefaultValue  
+            columnName="id"
+            defaultValueComputed="nextval('vets_id')"
+            tableName="vets"/>
+        <addDefaultValue  
+            columnName="id"
+            defaultValueComputed="nextval('specialties_id')"
+            tableName="specialties"/>
+    </changeSet>
+
+    <!-- MSSQL uses Default to call the sequence-->
+    <changeSet  id="3.2" author="krisnamourt" dbms="mssql">
+        <addDefaultValue  
+            columnName="id"
+            defaultValueComputed="NEXT VALUE FOR [vets_id]"
+            tableName="vets"/>
+        <addDefaultValue  
+            columnName="id"
+            defaultValueComputed="NEXT VALUE FOR [specialties_id]"
+            tableName="specialties"/>
+    </changeSet>
+
+    <changeSet id="4" author="krisnamourt">
+        <createTable tableName="vet_specialties">
+            <column name="vet_id" type="INT">
+                    <constraints nullable="false" foreignKeyName="fk_vet" references="vets(id)" primaryKey="true" primaryKeyName="pk_vet_specialties"/>
             </column>
-             <column name="specialty_id" type="INT">
+                <column name="specialty_id" type="INT">
                 <constraints nullable="false" foreignKeyName="fk_specialtie" references="specialties(id)" primaryKey="true" primaryKeyName="pk_vet_specialties"/>
             </column>
         </createTable>

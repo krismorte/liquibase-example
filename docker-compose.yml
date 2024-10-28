@@ -74,7 +74,7 @@ services:
     environment:
       ACCEPT_EULA: Y 
       MSSQL_SA_PASSWORD: ${MSSQL_PASSWORD}
-
+  
   liquibase_mssql:
     image: liquibase/liquibase:4.26
     container_name: liquibase_mssql

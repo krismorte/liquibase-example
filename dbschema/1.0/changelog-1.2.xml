@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro
+        http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+
+    <!--  Modify the animals table.-->
+    <changeSet  id="5" author="krisnamourt">
+         <dropColumn schemaName="${db.name}"
+            tableName="animals">
+            <column name="species"/>
+        </dropColumn>
+    </changeSet>
+    <!--  Modify the animals table adding columns-->
+    <changeSet  id="6" author="krisnamourt">
+        <addColumn schemaName="${db.name}"
+            tableName="animals">
+            <column name="species_id" type="INT"/>
+            <column name="owner_id" type="INT"/>
+        </addColumn>
+    </changeSet>
+    <!--  Modify the animals table adding FK-->
+    <changeSet  id="7" author="krisnamourt">
+        <addForeignKeyConstraint baseTableSchemaName="${db.name}"
+            baseTableName="animals"
+            baseColumnNames="species_id"
+            constraintName="fk_animals_species"
+            referencedColumnNames="id"
+            referencedTableName="species"
+            referencedTableSchemaName="${db.name}"/>
+        <addForeignKeyConstraint baseTableSchemaName="${db.name}"
+            baseTableName="animals"
+            baseColumnNames="owner_id"
+            constraintName="fk_animals_owners"
+            referencedColumnNames="id"
+            referencedTableName="owners"
+            referencedTableSchemaName="${db.name}"/>
+    </changeSet>
+</databaseChangeLog>

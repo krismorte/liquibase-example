@@ -2,45 +2,71 @@
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro
+        http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
 
 
-    <!-- Create Sequences Only Except MySQL 8.0-->
+    <!-- Create Sequences Except MySQL 8.0-->
     <changeSet  id="1" author="krisnamourt">
         <createSequence  
             cycle="false"
             incrementBy="1"
             maxValue="100000000"
             minValue="1"
-            sequenceName="vets_id"
+            sequenceName="animals_seq"
             startValue="1"/>
         <createSequence  
             cycle="false"
             incrementBy="1"
             maxValue="100000000"
             minValue="1"
-            sequenceName="specialties_id"
+            sequenceName="owners_seq"
             startValue="1"/>
-        </changeSet>
+        <createSequence  
+            cycle="false"
+            incrementBy="1"
+            maxValue="100000000"
+            minValue="1"
+            sequenceName="species_seq"
+            startValue="1"/>
+    </changeSet>
 
     <!-- Create tables -->
     <changeSet id="2" author="krisnamourt">
-        <createTable tableName="vets">
+        <!-- Create the animals' table -->
+        <createTable tableName="animals">
             <column name="id" type="INT">
                 <constraints primaryKey="true"/>
             </column>
 
-            <column name="first_name" type="VARCHAR(64)" />
-            <column name="last_name" type="VARCHAR(64)" />      
+            <column name="name" type="VARCHAR(100)" />
+            <column name="date_of_birth" type="DATE" />
+            <column name="escape_attempts" type="INT" />  
+            <column name="neutered" type="BIT" />  
+            <column name="weight_kg" type="DECIMAL" />  
         </createTable>
-
-        <createTable tableName="specialties">
+        <!-- Create the owners table -->
+        <createTable tableName="owners">
             <column name="id" type="INT" >
                 <constraints primaryKey="true"/>
             </column>
 
-            <column name="name" type="VARCHAR(126)" />     
+            <column name="full_name" type="VARCHAR(100)" />    
+            <column name="age" type="INT" />   
+        </createTable>
+        <!-- Create the species table -->
+        <createTable tableName="species">
+            <column name="id" type="INT" >
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="name" type="VARCHAR(100)" />    
         </createTable>
     </changeSet>
 
@@ -51,48 +77,50 @@
             columnName="id"
             schemaName="${db.name}"
             startWith="1"
-            tableName="vets"/>
+            tableName="animals"/>
         <addAutoIncrement 
             columnDataType="int"
             columnName="id"
             schemaName="${db.name}"
             startWith="1"
-            tableName="specialties"/>
+            tableName="owners"/>
+        <addAutoIncrement 
+            columnDataType="int"
+            columnName="id"
+            schemaName="${db.name}"
+            startWith="1"
+            tableName="species"/>
     </changeSet>
 
     <!-- Postgres uses Default to call the sequence-->
     <changeSet  id="3.1" author="krisnamourt" dbms="postgresql">
         <addDefaultValue  
             columnName="id"
-            defaultValueComputed="nextval('vets_id')"
-            tableName="vets"/>
+            defaultValueComputed="nextval('animals_seq')"
+            tableName="animals"/>
         <addDefaultValue  
             columnName="id"
-            defaultValueComputed="nextval('specialties_id')"
-            tableName="specialties"/>
+            defaultValueComputed="nextval('owners_seq')"
+            tableName="owners"/>
+        <addDefaultValue  
+            columnName="id"
+            defaultValueComputed="nextval('species_seq')"
+            tableName="species"/>
     </changeSet>
 
     <!-- MSSQL uses Default to call the sequence-->
     <changeSet  id="3.2" author="krisnamourt" dbms="mssql">
         <addDefaultValue  
             columnName="id"
-            defaultValueComputed="NEXT VALUE FOR [vets_id]"
-            tableName="vets"/>
+            defaultValueComputed="NEXT VALUE FOR [animals_seq]"
+            tableName="animals"/>
         <addDefaultValue  
             columnName="id"
-            defaultValueComputed="NEXT VALUE FOR [specialties_id]"
-            tableName="specialties"/>
+            defaultValueComputed="NEXT VALUE FOR [owners_seq]"
+            tableName="owners"/>
+        <addDefaultValue  
+            columnName="id"
+            defaultValueComputed="NEXT VALUE FOR [species_seq]"
+            tableName="species"/>
     </changeSet>
-
-    <changeSet id="4" author="krisnamourt">
-        <createTable tableName="vet_specialties">
-            <column name="vet_id" type="INT">
-                    <constraints nullable="false" foreignKeyName="fk_vet" references="vets(id)" primaryKey="true" primaryKeyName="pk_vet_specialties"/>
-            </column>
-                <column name="specialty_id" type="INT">
-                <constraints nullable="false" foreignKeyName="fk_specialtie" references="specialties(id)" primaryKey="true" primaryKeyName="pk_vet_specialties"/>
-            </column>
-        </createTable>
-     </changeSet>
-
 </databaseChangeLog>

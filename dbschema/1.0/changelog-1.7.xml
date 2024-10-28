@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro
+        http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+
+    <!-- LOAD DATA-->
+    <!-- This will add 3.594.280 visits considering you have 10 animals, 4 vets, and it will use around ~87.000 timestamps (~4min approx.)-->
+    <changeSet id="20.0" author="krisnamourt" dbms="postgresql">
+        <sql>
+            INSERT INTO visits (animal_id, vet_id, date_of_visit) SELECT * FROM (SELECT id FROM animals) animal_ids, (SELECT id FROM vets) vets_ids, generate_series('1980-01-01'::timestamp, '2018-01-01', '1 day') visit_timestamp;
+        </sql>
+    </changeSet>
+    <changeSet id="20.1" author="krisnamourt" dbms="mssql">
+        <sql>
+            DECLARE @StartDate AS DATETIME
+            DECLARE @EndDate AS DATETIME
+            DECLARE @CurrentDate AS DATETIME
+
+            SET @StartDate = '1980-01-01'
+            SET @EndDate = '2018-01-01'
+            SET @CurrentDate = @StartDate
+
+            WHILE (@CurrentDate &lt; @EndDate)
+            BEGIN
+                INSERT INTO visits (animal_id, vet_id, date_of_visit)
+                SELECT a.id, v.id, @CurrentDate FROM animals a, vets v;
+
+                SET @CurrentDate = convert(varchar(30), dateadd(day,1, @CurrentDate), 101); /*increment current date*/
+            END
+        </sql>
+    </changeSet>
+    <changeSet id="20.2" author="krisnamourt" dbms="mysql">
+        <createProcedure 
+            procedureName="load_visits">
+                CREATE PROCEDURE load_visits()
+                BEGIN
+                    DECLARE dateStart DATETIME DEFAULT '1980-01-01 00:00:00';
+    
+                    WHILE (dateStart &lt; '2018-01-01 00:00:00') DO
+                        INSERT INTO visits (animal_id, vet_id, date_of_visit)
+                        SELECT a.id, v.id, dateStart FROM TestDB.animals a, TestDB.vets v;
+                        SET dateStart = dateStart + INTERVAL 1 DAY;
+                    END WHILE;
+                END;
+        </createProcedure>
+        <sql>
+            CALL load_visits(); 
+        </sql>
+    </changeSet>
+    <!-- This will add 2.500.000 owners with full_name = 'Owner <X>' and email = 'owner_<X>@email.com' (~2min approx.)-->
+    <changeSet id="21.0" author="krisnamourt" dbms="postgresql">
+        <sql>
+            insert into owners (full_name, email) select 'Owner ' || generate_series(1,500000), 'owner_' || generate_series(1,500000) || '@mail.com';
+        </sql>
+    </changeSet>
+    <changeSet id="21.1" author="krisnamourt" dbms="mssql">
+        <sql>
+            DECLARE @Start AS INT
+            DECLARE @End AS INT
+
+
+            SET @Start = 1
+            SET @End = 500000
+
+            WHILE (@Start &lt; @End)
+            BEGIN
+                insert into owners (full_name, email)
+                select 'Owner '+CONVERT(varchar, @Start), 'owner_'+CONVERT(varchar, @Start)+'@mail.com';
+
+                SET @Start = @Start + 1; /*increment one*/
+            END
+        </sql>
+    </changeSet>
+    <changeSet id="21.2" author="krisnamourt" dbms="mysql">
+        <createProcedure 
+            procedureName="load_owners">
+                CREATE PROCEDURE load_owners()
+                BEGIN
+                    DECLARE init INT DEFAULT 1;
+    
+                    WHILE (init &lt; 500000) DO
+                        insert into owners (full_name, email)
+                        select CONCAT('Owner ' ,init), CONCAT('owner_', init, '@mail.com');
+                        SET init = init + 1;
+                    END WHILE;
+                END;
+        </createProcedure>
+        <sql>
+            CALL load_owners(); 
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
